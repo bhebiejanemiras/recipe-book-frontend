@@ -1,10 +1,11 @@
 import { useState, type SubmitEvent } from "react";
-import { createRecipeService, type Recipe } from "@/services/recipe-service";
+import { createRecipeService, uploadRecipeImageService, type Recipe } from "@/services/recipe-service";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { ImagePicker } from "@/components/common/image-picker";
 
 type AddRecipeFormProps = {
   onSuccess: (newRecipe: Recipe) => void;
@@ -24,7 +25,7 @@ type FormErrors = {
 
 const messages: FormErrors = {
   name: "Name is required",
-  image: "Image URL is required",
+  image: "Add a photo for your recipe",
   cuisine: "Cuisine is required",
   difficulty: "Difficulty is required",
   cookTimeMinutes: "Cook time is required",
@@ -36,7 +37,8 @@ const messages: FormErrors = {
 
 export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
   const [name, setName] = useState("");
-  const [image, setImage] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [cuisine, setCuisine] = useState("");
   const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
   const [cookTimeMinutes, setCookTimeMinutes] = useState("");
@@ -56,11 +58,21 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
     });
   };
 
+  // Keep a lightweight preview for the chosen file and clear the previous one.
+  const handleSelectImage = (selected: File | null) => {
+    setFile(selected);
+    setErrors({ ...errors, image: selected ? undefined : messages.image });
+    setPreview((current) => {
+      if (current && current.startsWith("blob:")) URL.revokeObjectURL(current);
+      return selected ? URL.createObjectURL(selected) : null;
+    });
+  };
+
   const handleAddRecipe = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitError("");
 
-    const values = { name, image, cuisine, difficulty, cookTimeMinutes, mealType, tags, ingredients, instructions };
+    const values: Record<string, string> = { name, cuisine, difficulty, cookTimeMinutes, mealType, tags, ingredients, instructions };
 
     const newErrors: FormErrors = {};
     let hasError = false;
@@ -68,20 +80,22 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
     // check each required field
     for (const field in values) {
       const key = field as keyof FormErrors;
+      const value = values[field];
 
-      if (values[key].trim() === "") {
+      if (typeof value === "string" && value.trim() === "") {
         newErrors[key] = messages[key];
         hasError = true;
       }
     }
 
-    // Client-side checks mirror the API's Zod rules so the user gets a clear
-    // message instead of a generic 400 response.
-    if (!hasError && !/^https?:\/\/.+/i.test(image.trim())) {
-      newErrors.image = "Enter a valid HTTP or HTTPS URL";
+    // The photo is uploaded when the form is submitted, so it is checked separately.
+    if (!file) {
+      newErrors.image = messages.image;
       hasError = true;
     }
 
+    // Client-side checks mirror the API's Zod rules so the user gets a clear
+    // message instead of a generic 400 response.
     if (!hasError && (!Number.isInteger(Number(cookTimeMinutes)) || Number(cookTimeMinutes) < 0)) {
       newErrors.cookTimeMinutes = "Enter a whole number of minutes (0 or more)";
       hasError = true;
@@ -89,12 +103,15 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
 
     setErrors(newErrors);
 
-    if (hasError === true) {
+    if (hasError || !file) {
       return;
     }
 
     setBusy(true);
     try {
+      // Upload first, then create the recipe with the returned image path.
+      const image = await uploadRecipeImageService(file);
+
       const newRecipe = await createRecipeService({
         name,
         image,
@@ -120,14 +137,13 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
   // One column on phones, two on larger screens; separate row and column gaps.
   return (
     <form onSubmit={handleAddRecipe} className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-      <div>
-        <Label htmlFor="recipe-name" error={errors.name}>Name</Label>
-        <Input id="recipe-name" type="text" value={name} onChange={(e) => { setName(e.target.value); checkField("name", e.target.value); }} onBlur={() => checkField("name", name)} error={errors.name} />
+      <div className="sm:col-span-2">
+        <ImagePicker preview={preview} error={errors.image} onSelect={handleSelectImage} />
       </div>
 
       <div>
-        <Label htmlFor="recipe-image" error={errors.image}>Image URL</Label>
-        <Input id="recipe-image" type="url" value={image} onChange={(e) => { setImage(e.target.value); checkField("image", e.target.value); }} onBlur={() => checkField("image", image)} placeholder="https://example.com/image.jpg" error={errors.image} />
+        <Label htmlFor="recipe-name" error={errors.name}>Name</Label>
+        <Input id="recipe-name" type="text" value={name} onChange={(e) => { setName(e.target.value); checkField("name", e.target.value); }} onBlur={() => checkField("name", name)} error={errors.name} />
       </div>
 
       <div>
@@ -171,9 +187,9 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
           id="recipe-instructions" value={instructions} onChange={(e) => { setInstructions(e.target.value); checkField("instructions", e.target.value); }} onBlur={() => checkField("instructions", instructions)} rows={3} error={errors.instructions} />
       </div>
 
-      {submitError && <p role="alert" className="text-sm font-medium text-danger sm:col-span-2">{submitError}</p>}
+      {submitError && <p role="alert" className="text-sm text-danger sm:col-span-2">{submitError}</p>}
       <Button type="submit" disabled={busy} className="w-full sm:col-span-2 disabled:cursor-wait disabled:opacity-60">
-        {busy ? "Adding…" : "Add Recipe"}
+        {busy ? "Uploading…" : "Add Recipe"}
       </Button>
     </form>
   );

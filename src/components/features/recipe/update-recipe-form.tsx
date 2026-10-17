@@ -1,10 +1,12 @@
 import { useState, type SubmitEvent } from "react";
-import { updateRecipeService, type Recipe } from "@/services/recipe-service";
+import { updateRecipeService, uploadRecipeImageService, type Recipe } from "@/services/recipe-service";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { ImagePicker } from "@/components/common/image-picker";
+import { resolveImageUrl } from "@/lib/image";
 
 function linesToList(value: string) {
   return value.split("\n").filter((item) => item.trim() !== "");
@@ -12,7 +14,8 @@ function linesToList(value: string) {
 
 export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe; onSuccess: (updated: Recipe) => void }) {
   const [name, setName] = useState(recipe.name);
-  const [image, setImage] = useState(recipe.image);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(() => resolveImageUrl(recipe.image));
   const [cuisine, setCuisine] = useState(recipe.cuisine);
   const [difficulty, setDifficulty] = useState(recipe.difficulty);
   const [cookTimeMinutes, setCookTimeMinutes] = useState(String(recipe.cookTimeMinutes));
@@ -23,12 +26,20 @@ export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // A new file replaces the current photo; clearing it falls back to the saved one.
+  const handleSelectImage = (selected: File | null) => {
+    setFile(selected);
+    setPreview((current) => {
+      if (current && current.startsWith("blob:")) URL.revokeObjectURL(current);
+      return selected ? URL.createObjectURL(selected) : resolveImageUrl(recipe.image);
+    });
+  };
+
   // Client-side checks mirror the API's Zod rules so the user gets a clear
   // message instead of a generic 400 response.
   function validate() {
     if (!name.trim()) return "Name is required.";
     if (!cuisine.trim()) return "Cuisine is required.";
-    if (!/^https?:\/\/.+/i.test(image.trim())) return "Image must be a valid HTTP or HTTPS URL.";
     if (!Number.isInteger(Number(cookTimeMinutes)) || Number(cookTimeMinutes) < 0) return "Cook time must be a whole number of minutes (0 or more).";
     if (linesToList(mealType).length === 0) return "Enter at least one meal type.";
     if (linesToList(ingredients).length === 0) return "Enter at least one ingredient.";
@@ -47,6 +58,9 @@ export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe
     setError("");
     setBusy(true);
     try {
+      // Only upload when a new photo was chosen; otherwise keep the current one.
+      const image = file ? await uploadRecipeImageService(file) : recipe.image;
+
       const updatedRecipe = await updateRecipeService(recipe.id, {
         name,
         image,
@@ -72,14 +86,13 @@ export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe
   // One column on phones, two on larger screens; separate row and column gaps.
   return (
     <form onSubmit={handleUpdateRecipe} className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-      <div>
-        <Label htmlFor="update-recipe-name">Name</Label>
-        <Input id="update-recipe-name" type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      <div className="sm:col-span-2">
+        <ImagePicker preview={preview} onSelect={handleSelectImage} />
       </div>
 
       <div>
-        <Label htmlFor="update-recipe-image">Image URL</Label>
-        <Input id="update-recipe-image" type="url" value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://example.com/image.jpg" />
+        <Label htmlFor="update-recipe-name">Name</Label>
+        <Input id="update-recipe-name" type="text" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
 
       <div>
@@ -89,14 +102,14 @@ export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe
 
       <div>
         <Label htmlFor="update-recipe-difficulty">Difficulty</Label>
-        <Select id="update-recipe-difficulty" value={difficulty} onChange={(e) => setDifficulty(e.target.value as Recipe["difficulty"])}>
+        <Select id="update-recipe-difficulty" value={difficulty} onChange={(e) => setDifficulty(e.target.value as "Easy" | "Medium" | "Hard")}>
           <option>Easy</option><option>Medium</option><option>Hard</option>
         </Select>
       </div>
 
       <div>
         <Label htmlFor="update-recipe-cook-time">Cook Time (minutes)</Label>
-        <Input id="update-recipe-cook-time" type="number" min="0" step="1" value={cookTimeMinutes} onChange={(e) => setCookTimeMinutes(e.target.value)} />
+        <Input id="update-recipe-cook-time" type="number" min="0" value={cookTimeMinutes} onChange={(e) => setCookTimeMinutes(e.target.value)} />
       </div>
 
       <div className="sm:col-span-2">
@@ -111,16 +124,16 @@ export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe
 
       <div className="sm:col-span-2">
         <Label htmlFor="update-recipe-ingredients">Ingredients (one per line)</Label>
-        <Textarea id="update-recipe-ingredients" value={ingredients} onChange={(e) => setIngredients(e.target.value)} rows={4} />
+        <Textarea id="update-recipe-ingredients" value={ingredients} onChange={(e) => setIngredients(e.target.value)} rows={3} />
       </div>
 
       <div className="sm:col-span-2">
         <Label htmlFor="update-recipe-instructions">Instructions (one per line)</Label>
-        <Textarea id="update-recipe-instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} rows={4} />
+        <Textarea id="update-recipe-instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} rows={3} />
       </div>
 
       {error && <p role="alert" className="text-sm text-danger sm:col-span-2">{error}</p>}
-      <Button type="submit" disabled={busy} className="w-full sm:col-span-2">
+      <Button type="submit" disabled={busy} className="w-full sm:col-span-2 disabled:cursor-wait disabled:opacity-60">
         {busy ? "Saving…" : "Save Changes"}
       </Button>
     </form>

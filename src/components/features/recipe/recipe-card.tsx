@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/ui/tag";
 import RecipeMeta from "@/components/common/recipe-meta";
+import { resolveImageUrl } from "@/lib/image";
 
 type RecipeCardProps = {
   id: string;
@@ -20,7 +21,17 @@ export default function RecipeCard({ id, image, name, cuisine, mealType, difficu
   return (
     <Card className="flex h-full flex-col transition-colors hover:border-ink/30">
       <div className="h-52 overflow-hidden border-b border-ink/10 bg-paper">
-        <img src={image} alt={name} className="h-full w-full object-cover" />
+        <img
+          src={resolveImageUrl(image)}
+          alt={name}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={(event) => {
+            const target = event.currentTarget;
+            target.onerror = null;
+            target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f4f4f1'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2316181c' font-size='14'%3ENo image%3C/text%3E%3C/svg%3E";
+          }}
+        />
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-5">

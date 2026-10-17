@@ -1,5 +1,6 @@
 import { Table } from "@/components/ui/table";
 import { Tag } from "@/components/ui/tag";
+import { resolveImageUrl } from "@/lib/image";
 
 export type AdminRecipe = {
   id: string;
@@ -45,7 +46,16 @@ export function AdminRecipesTable({ recipes, loading }: AdminRecipesTableProps) 
             <tr key={recipe.id}>
               <td>
                 <div className="flex min-w-48 items-center gap-3">
-                  <img src={recipe.image} alt="" className="h-12 w-12 border border-ink/10 object-cover" />
+                  <img
+                    src={resolveImageUrl(recipe.image)}
+                    alt=""
+                    className="h-12 w-12 border border-ink/10 object-cover"
+                    onError={(event) => {
+                      const target = event.currentTarget;
+                      target.onerror = null;
+                      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23f4f4f1'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2316181c' font-size='8'%3ENo img%3C/text%3E%3C/svg%3E";
+                    }}
+                  />
                   <span className="font-medium">{recipe.name}</span>
                 </div>
               </td>

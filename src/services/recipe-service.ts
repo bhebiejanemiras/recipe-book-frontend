@@ -58,3 +58,19 @@ export async function getAllRecipesService() {
   const response = await http.get("/recipes/v1/get-all-recipes");
   return response.data.data.recipes as AdminRecipe[];
 }
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Unable to read the selected image"));
+    reader.readAsDataURL(file);
+  });
+}
+
+// Upload a photo and return the path to store on the recipe.
+export async function uploadRecipeImageService(file: File) {
+  const image = await fileToDataUrl(file);
+  const response = await http.post("/recipes/v1/upload-image", { image });
+  return response.data.data.url as string;
+}

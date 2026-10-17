@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Tag } from "@/components/ui/tag";
 import { Alert } from "@/components/ui/alert";
 import UpdateRecipeForm from "@/components/features/recipe/update-recipe-form";
+import { resolveImageUrl } from "@/lib/image";
 
 export function RecipeDetails({ id }: { id: string }) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -74,7 +75,16 @@ export function RecipeDetails({ id }: { id: string }) {
           {/* Keep image, metadata, and cooking steps grouped in one detail card. */}
           <Card className="mt-6">
             <div className="border-b border-ink/10 bg-paper">
-              <img className="h-64 w-full object-cover sm:h-[420px]" src={recipe.image} alt={recipe.name} />
+              <img
+                className="h-64 w-full object-cover sm:h-[420px]"
+                src={resolveImageUrl(recipe.image)}
+                alt={recipe.name}
+                onError={(event) => {
+                  const target = event.currentTarget;
+                  target.onerror = null;
+                  target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='420'%3E%3Crect width='800' height='420' fill='%23f4f4f1'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2316181c' font-size='16'%3ENo image%3C/text%3E%3C/svg%3E";
+                }}
+              />
             </div>
             <div className="space-y-8 p-6 sm:p-10">
               <div className="flex flex-wrap items-end justify-between gap-4">
