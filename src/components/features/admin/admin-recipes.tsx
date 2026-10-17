@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAllRecipesService } from "@/services/recipe-service";
 import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { AdminRecipesTable, type AdminRecipe } from "./admin-recipes-table";
 
 // This feature owns the recipe request, refresh button, and request state.
@@ -60,7 +61,7 @@ export function AdminRecipes() {
       </div>
 
       {error ? (
-        <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>
+        <Alert tone="error">{error}</Alert>
       ) : (
         <AdminRecipesTable recipes={recipes} loading={loading} />
       )}

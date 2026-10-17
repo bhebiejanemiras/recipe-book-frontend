@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router";
 import { useAuth } from "@/components/context/use-auth";
 import { deleteRecipeService, getRecipesService, type Recipe } from "@/services/recipe-service";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import RecipeCard from "@/components/features/recipe/recipe-card";
 import AddRecipeForm from "@/components/features/recipe/add-recipe-form";
-import { Navigate } from "react-router";
 
 export function RecipeCollection() {
   const { user, ready } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
 
   useEffect(function fetchRecipes() {
     if (!ready || !user) {
@@ -31,6 +34,10 @@ export function RecipeCollection() {
         if (active) {
           setError("Unable to load recipes. Please try again.");
         }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
@@ -43,21 +50,26 @@ export function RecipeCollection() {
 
     return cleanup;
   }, [ready, user]);
+
   async function handleDelete(id: string) {
     if (!confirm("Do you want to delete this recipe?")) return;
+    setError("");
+    setStatus("");
     try {
       await deleteRecipeService(id);
       setRecipes((current) => current.filter((recipe) => recipe.id !== id));
+      setStatus("Recipe deleted.");
     } catch {
       setError("Unable to delete this recipe. Please try again.");
     }
-  };
+  }
 
   if (!ready) return null;
 
   if (!user) return <Navigate to="/auth/login" replace />;
 
   function openForm() {
+    setStatus("");
     setOpen(true);
   }
 
@@ -69,27 +81,57 @@ export function RecipeCollection() {
     setRecipes(function addRecipe(currentRecipes) {
       return [newRecipe, ...currentRecipes];
     });
+    setStatus(`"${newRecipe.name}" was added to your recipes.`);
     closeForm();
   }
 
   // The page supplies the header; this feature owns the collection and its dialog.
   return (
-    <><>
-        {/* Collection heading and primary action wrap on narrow screens. */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div><h2 className="text-2xl font-semibold tracking-tight">Your recipes</h2><p className="mt-1 text-sm text-emerald-950/60">{recipes.length} saved {recipes.length === 1 ? "recipe" : "recipes"} to inspire your next meal</p></div>
-          <Button onClick={openForm}>Add Recipe</Button>
+    <>
+      {/* Collection heading and primary action wrap on narrow screens. */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Your recipes</h2>
+          <p className="mt-1 text-sm text-emerald-950/60">
+            {loading
+              ? "Loading your recipes…"
+              : `${recipes.length} saved ${recipes.length === 1 ? "recipe" : "recipes"} to inspire your next meal`}
+          </p>
         </div>
-        {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
-        {recipes.length === 0 ? <div className="rounded-2xl border border-dashed border-emerald-900/25 bg-[#f7f8f0] px-6 py-16 text-center"><h3 className="text-xl font-semibold">A fresh page for your favorites</h3><p className="mt-2 text-sm text-emerald-950/65">Save a family classic or something new you want to try.</p><Button className="mt-6" onClick={openForm}>Add your first recipe</Button></div> :
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {recipes.map((recipe) => <RecipeCard key={recipe.id} {...recipe} onDelete={handleDelete} />)}
-          </div>}
-        {/* Add the saved recipe to local state so the list updates immediately. */}
-        <Modal open={open} onClose={closeForm} title="Add Recipe">
-          <AddRecipeForm onSuccess={handleCreated} />
-        </Modal>
-      </>
+        <Button onClick={openForm}>Add Recipe</Button>
+      </div>
+
+      {error && <Alert tone="error" className="mb-4">{error}</Alert>}
+      {status && <Alert tone="success" className="mb-4">{status}</Alert>}
+
+      {loading ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="animate-pulse overflow-hidden rounded-2xl border border-emerald-900/10 bg-[#f7f8f0]">
+              <div className="h-56 bg-emerald-100" />
+              <div className="space-y-3 p-5">
+                <div className="h-5 w-2/3 rounded bg-emerald-100" />
+                <div className="h-4 w-1/2 rounded bg-emerald-100/70" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : recipes.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-emerald-900/25 bg-[#f7f8f0] px-6 py-16 text-center">
+          <h3 className="text-xl font-semibold">A fresh page for your favorites</h3>
+          <p className="mt-2 text-sm text-emerald-950/65">Save a family classic or something new you want to try.</p>
+          <Button className="mt-6" onClick={openForm}>Add your first recipe</Button>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {recipes.map((recipe) => <RecipeCard key={recipe.id} {...recipe} onDelete={handleDelete} />)}
+        </div>
+      )}
+
+      {/* Add the saved recipe to local state so the list updates immediately. */}
+      <Modal open={open} onClose={closeForm} title="Add Recipe">
+        <AddRecipeForm onSuccess={handleCreated} />
+      </Modal>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 type ModalProps = {
@@ -9,11 +9,35 @@ type ModalProps = {
 };
 
 export function Modal({ open, onClose, title, children }: ModalProps) {
+  // Close on Escape and stop the page behind the dialog from scrolling.
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-stretch justify-center bg-emerald-950/60 backdrop-blur-sm lg:items-center lg:p-4" onClick={onClose}>
-      <div className="flex h-full w-full flex-col bg-[#eef3e8] text-emerald-950 lg:h-auto lg:max-h-[90vh] lg:max-w-2xl lg:rounded-2xl lg:border lg:border-emerald-900/15" onClick={(e) => e.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title ?? "Dialog"}
+        className="flex h-full w-full flex-col bg-[#eef3e8] text-emerald-950 lg:h-auto lg:max-h-[90vh] lg:max-w-2xl lg:rounded-2xl lg:border lg:border-emerald-900/15"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex shrink-0 items-center justify-between border-b border-emerald-900/15 px-6 py-4">
           <h2 className="text-lg font-medium">{title}</h2>
           <Button variant="tertiary" onClick={onClose}>

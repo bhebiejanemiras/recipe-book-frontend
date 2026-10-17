@@ -46,6 +46,7 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
   const [instructions, setInstructions] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   // show error if empty, remove error if has value
   const checkField = (field: keyof FormErrors, value: string) => {
@@ -74,12 +75,25 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
       }
     }
 
+    // Client-side checks mirror the API's Zod rules so the user gets a clear
+    // message instead of a generic 400 response.
+    if (!hasError && !/^https?:\/\/.+/i.test(image.trim())) {
+      newErrors.image = "Enter a valid HTTP or HTTPS URL";
+      hasError = true;
+    }
+
+    if (!hasError && (!Number.isInteger(Number(cookTimeMinutes)) || Number(cookTimeMinutes) < 0)) {
+      newErrors.cookTimeMinutes = "Enter a whole number of minutes (0 or more)";
+      hasError = true;
+    }
+
     setErrors(newErrors);
 
     if (hasError === true) {
       return;
     }
 
+    setBusy(true);
     try {
       const newRecipe = await createRecipeService({
         name,
@@ -98,6 +112,8 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
       setSubmitError(typeof error === "object" && error !== null && "response" in error
         ? ((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Unable to create recipe.")
         : "Unable to connect to the API.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -156,8 +172,8 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
       </div>
 
       {submitError && <p role="alert" className="text-sm text-red-600 sm:col-span-2">{submitError}</p>}
-      <Button type="submit" className="w-full sm:col-span-2">
-        Add Recipe
+      <Button type="submit" disabled={busy} className="w-full sm:col-span-2 disabled:cursor-wait disabled:opacity-60">
+        {busy ? "Adding…" : "Add Recipe"}
       </Button>
     </form>
   );

@@ -4,6 +4,7 @@ import { useAuth } from "@/components/context/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 
 function getErrorMessage(error: unknown) {
   if (typeof error === "object" && error !== null && "response" in error) {
@@ -54,7 +55,7 @@ export function SignupForm() {
         <Input id="auth-password" type="password" autoComplete={"new-password"} required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} />
       </div>
       <p className="-mt-2 text-xs text-gray-500">Use at least 8 characters, including one uppercase letter and one number.</p>
-      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+      {error && <Alert tone="error">{error}</Alert>}
       <Button type="submit" disabled={busy} className="mt-1 bg-emerald-900 py-3 font-medium hover:bg-emerald-950 disabled:cursor-wait disabled:opacity-60">{busy ? "Please wait…" : "Create account"}</Button>
     </form>
   );

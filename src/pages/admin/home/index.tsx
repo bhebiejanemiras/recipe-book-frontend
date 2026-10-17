@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { AdminRecipes } from "@/components/features/admin/admin-recipes";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 
 export default function AdminPage() {
   const { user, logout } = useAuth();
@@ -27,7 +28,7 @@ export default function AdminPage() {
         </div>
       </PageHeader>
 
-      {error && <p role="alert" className="mb-6 text-rose-700">{error}</p>}
+      {error && <Alert tone="error" className="mb-6">{error}</Alert>}
 
       <AdminRecipes />
     </Section>
