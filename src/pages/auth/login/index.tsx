@@ -1,19 +1,22 @@
-import { AuthFormHeader } from "@/components/features/auth/auth-form-header";
 import { Link } from "react-router";
 import { Card } from "@/components/ui/card";
+import { AuthFormHeader } from "@/components/features/auth/auth-form-header";
 import { LoginForm } from "@/components/features/auth/login-form";
 
 export default function LoginPage() {
   return (
-    <Card className="rounded-2xl border-emerald-100/40 bg-[#eef3e8] p-6 shadow-2xl shadow-black/20 sm:p-8 [&_input]:border-emerald-900/15 [&_input]:bg-white/60 [&_input]:py-3 [&_input]:outline-none [&_input]:focus:border-emerald-700 [&_input]:focus:ring-2 [&_input]:focus:ring-emerald-700/15">
+    <Card className="p-6 sm:p-8">
       {/* The page owns its presentation; the feature handles form state and submission. */}
-      <AuthFormHeader title="Welcome back" description="Sign in to find your next favorite meal." />
+      <AuthFormHeader title="Welcome back" description="Sign in to find your next favourite meal." />
 
       <LoginForm />
 
-      <Link className="mt-6 block text-center text-sm text-emerald-900 underline underline-offset-4" to={"/auth/signup"}>
-        New here? Create an account
-      </Link>
+      <p className="mt-6 border-t border-ink/10 pt-5 text-center text-sm text-ink/60">
+        New here?{" "}
+        <Link className="font-medium text-accent underline underline-offset-4 hover:text-ink" to="/auth/signup">
+          Create an account
+        </Link>
+      </p>
     </Card>
   );
 }

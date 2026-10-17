@@ -119,7 +119,7 @@ export default function UpdateRecipeForm({ recipe, onSuccess }: { recipe: Recipe
         <Textarea id="update-recipe-instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} rows={4} />
       </div>
 
-      {error && <p role="alert" className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger sm:col-span-2">{error}</p>}
       <Button type="submit" disabled={busy} className="w-full sm:col-span-2">
         {busy ? "Saving…" : "Save Changes"}
       </Button>

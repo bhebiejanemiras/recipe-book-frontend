@@ -8,7 +8,7 @@ export default function RecipePage() {
   // The page reads the URL; the feature fetches and displays that recipe.
   return (
     <Section>
-      <Link to="/user" className="text-sm font-medium text-emerald-800 hover:text-emerald-950">
+      <Link to="/user" className="text-sm font-medium text-ink/55 transition-colors hover:text-ink">
         ← Back to recipes
       </Link>
 

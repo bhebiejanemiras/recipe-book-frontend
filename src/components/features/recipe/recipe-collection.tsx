@@ -89,41 +89,41 @@ export function RecipeCollection() {
   return (
     <>
       {/* Collection heading and primary action wrap on narrow screens. */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-ink/10 pb-5">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Your recipes</h2>
-          <p className="mt-1 text-sm text-emerald-950/60">
+          <h2 className="font-serif text-2xl tracking-tight">Your recipes</h2>
+          <p className="mt-1 text-sm text-ink/55">
             {loading
               ? "Loading your recipes…"
               : `${recipes.length} saved ${recipes.length === 1 ? "recipe" : "recipes"} to inspire your next meal`}
           </p>
         </div>
-        <Button onClick={openForm}>Add Recipe</Button>
+        <Button onClick={openForm}>Add recipe</Button>
       </div>
 
       {error && <Alert tone="error" className="mb-4">{error}</Alert>}
       {status && <Alert tone="success" className="mb-4">{status}</Alert>}
 
       {loading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
           {[0, 1, 2].map((index) => (
-            <div key={index} className="animate-pulse overflow-hidden rounded-2xl border border-emerald-900/10 bg-[#f7f8f0]">
-              <div className="h-56 bg-emerald-100" />
+            <div key={index} className="animate-pulse border border-ink/10 bg-white">
+              <div className="h-52 border-b border-ink/10 bg-paper" />
               <div className="space-y-3 p-5">
-                <div className="h-5 w-2/3 rounded bg-emerald-100" />
-                <div className="h-4 w-1/2 rounded bg-emerald-100/70" />
+                <div className="h-5 w-2/3 bg-paper" />
+                <div className="h-4 w-1/2 bg-paper" />
               </div>
             </div>
           ))}
         </div>
       ) : recipes.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-emerald-900/25 bg-[#f7f8f0] px-6 py-16 text-center">
-          <h3 className="text-xl font-semibold">A fresh page for your favorites</h3>
-          <p className="mt-2 text-sm text-emerald-950/65">Save a family classic or something new you want to try.</p>
+        <div className="border border-dashed border-ink/20 bg-white px-6 py-16 text-center">
+          <h3 className="font-serif text-xl">A fresh page for your favourites</h3>
+          <p className="mt-2 text-sm text-ink/55">Save a family classic or something new you want to try.</p>
           <Button className="mt-6" onClick={openForm}>Add your first recipe</Button>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {recipes.map((recipe) => <RecipeCard key={recipe.id} {...recipe} onDelete={handleDelete} />)}
         </div>
       )}

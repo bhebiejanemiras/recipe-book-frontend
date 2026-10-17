@@ -1,8 +1,17 @@
 import { Table } from "@/components/ui/table";
 import { Tag } from "@/components/ui/tag";
-import type { AdminRecipe } from "@/services/recipe-service";
 
-export type { AdminRecipe } from "@/services/recipe-service";
+export type AdminRecipe = {
+  id: string;
+  name: string;
+  image: string;
+  cuisine: string;
+  mealType: string[];
+  difficulty: string;
+  cookTimeMinutes: number;
+  userId: string;
+  ownerName: string | null;
+};
 
 type AdminRecipesTableProps = {
   recipes: AdminRecipe[];
@@ -22,13 +31,13 @@ export function AdminRecipesTable({ recipes, loading }: AdminRecipesTableProps) 
           <th scope="col">Difficulty</th>
           <th scope="col">Cook time</th>
           <th scope="col">Owner ID</th>
-          <th scope="col">Owner Name</th>
+          <th scope="col">Owner name</th>
         </tr>
       </thead>
       <tbody>
         {!loading && recipes.length === 0 && (
           <tr>
-            <td colSpan={7} className="text-center">No recipes have been created yet.</td>
+            <td colSpan={7} className="text-center text-ink/55">No recipes have been created yet.</td>
           </tr>
         )}
         {recipes.map(function renderRecipe(recipe) {
@@ -36,7 +45,7 @@ export function AdminRecipesTable({ recipes, loading }: AdminRecipesTableProps) 
             <tr key={recipe.id}>
               <td>
                 <div className="flex min-w-48 items-center gap-3">
-                  <img src={recipe.image} alt="" className="h-12 w-12 rounded-lg object-cover" />
+                  <img src={recipe.image} alt="" className="h-12 w-12 border border-ink/10 object-cover" />
                   <span className="font-medium">{recipe.name}</span>
                 </div>
               </td>
@@ -44,7 +53,7 @@ export function AdminRecipesTable({ recipes, loading }: AdminRecipesTableProps) 
               <td>{recipe.mealType.join(", ")}</td>
               <td><Tag>{recipe.difficulty}</Tag></td>
               <td>{recipe.cookTimeMinutes} mins</td>
-              <td className="font-mono text-xs">{recipe.userId}</td>
+              <td className="font-mono text-xs text-ink/50">{recipe.userId}</td>
               <td>{recipe.ownerName || "Unnamed user"}</td>
             </tr>
           );

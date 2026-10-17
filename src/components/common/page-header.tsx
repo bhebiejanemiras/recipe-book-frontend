@@ -1,20 +1,20 @@
 import type { ReactNode } from "react";
 
 type PageHeaderProps = {
+  children?: ReactNode;
   eyebrow: string;
   title: string;
   description: string;
-  children?: ReactNode;
 };
 
-// Shared page heading. Optional children provide actions such as Sign out.
+// A solid ink panel gives each page a strong, boxed header.
 export function PageHeader({ eyebrow, title, description, children }: PageHeaderProps) {
   return (
-    <header className="mb-8 flex flex-wrap items-center justify-between gap-6 rounded-3xl bg-emerald-950 p-6 text-amber-50 sm:p-8">
+    <header className="mb-8 flex flex-col gap-6 border border-ink/10 bg-ink px-6 py-8 text-paper sm:flex-row sm:items-end sm:justify-between sm:px-10 sm:py-10">
       <div>
-        <p className="text-xs tracking-widest text-emerald-200 uppercase">{eyebrow}</p>
-        <h1 className="mt-3 text-3xl font-semibold">{title}</h1>
-        <p className="mt-2 text-sm text-emerald-100/80">{description}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-paper/45">{eyebrow}</p>
+        <h1 className="mt-3 font-serif text-3xl tracking-tight sm:text-4xl">{title}</h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-paper/60">{description}</p>
       </div>
       {children}
     </header>

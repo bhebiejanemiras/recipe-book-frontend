@@ -1,8 +1,23 @@
 @import "tailwindcss";
 
+@theme {
+  /* Four-colour system. Every other tone on screen is one of these four
+     rendered at reduced opacity, so the palette never becomes noisy. */
+  --color-ink: #16181c; /* text + dark panels */
+  --color-paper: #f4f4f1; /* page and light surfaces */
+  --color-accent: #2f5d50; /* primary actions and highlights */
+  --color-danger: #b3261e; /* errors only */
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  background: #e7eee2;
-  color: #143b30;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }

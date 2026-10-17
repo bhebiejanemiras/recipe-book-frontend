@@ -17,6 +17,7 @@ function getErrorMessage(error: unknown) {
 export function SignupForm() {
   const { signup } = useAuth();
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,11 +53,13 @@ export function SignupForm() {
       </div>
       <div>
         <Label htmlFor="auth-password">Password</Label>
-        <Input id="auth-password" type="password" autoComplete={"new-password"} required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} />
+        <Input id="auth-password" type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} />
       </div>
-      <p className="-mt-2 text-xs text-gray-500">Use at least 8 characters, including one uppercase letter and one number.</p>
+
       {error && <Alert tone="error">{error}</Alert>}
-      <Button type="submit" disabled={busy} className="mt-1 bg-emerald-900 py-3 font-medium hover:bg-emerald-950 disabled:cursor-wait disabled:opacity-60">{busy ? "Please wait…" : "Create account"}</Button>
+      <Button type="submit" disabled={busy} className="mt-1 w-full py-3 disabled:cursor-wait">
+        {busy ? "Please wait…" : "Create account"}
+      </Button>
     </form>
   );
 }

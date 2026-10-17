@@ -21,10 +21,10 @@ export default function HomePage() {
 
   return (
     <Section>
-      <PageHeader eyebrow="Your kitchen companion" title="Recipe Book" description="Keep your favorite meals in one place.">
-        <div className="flex flex-wrap items-center gap-4">
-          <span>{user?.name}</span>
-          <Button variant="secondary" onClick={handleLogout}>Sign out</Button>
+      <PageHeader eyebrow="Your kitchen companion" title="Recipe Book" description="Browse and manage the recipes you have saved.">
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-paper/60">{user?.name}</span>
+          <Button variant="inverse" onClick={handleLogout}>Sign out</Button>
         </div>
       </PageHeader>
 

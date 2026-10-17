@@ -171,7 +171,7 @@ export default function AddRecipeForm({ onSuccess }: AddRecipeFormProps) {
           id="recipe-instructions" value={instructions} onChange={(e) => { setInstructions(e.target.value); checkField("instructions", e.target.value); }} onBlur={() => checkField("instructions", instructions)} rows={3} error={errors.instructions} />
       </div>
 
-      {submitError && <p role="alert" className="text-sm text-red-600 sm:col-span-2">{submitError}</p>}
+      {submitError && <p role="alert" className="text-sm font-medium text-danger sm:col-span-2">{submitError}</p>}
       <Button type="submit" disabled={busy} className="w-full sm:col-span-2 disabled:cursor-wait disabled:opacity-60">
         {busy ? "Adding…" : "Add Recipe"}
       </Button>
